@@ -6,7 +6,7 @@ from unittest.mock import patch
 import torch
 from mmf.common.registry import registry
 from mmf.utils.general import get_batch_size
-from tests.test_utils import SimpleModel
+from tests.test_utils import SimpleModel, SimpleNaNLossModel
 from tests.trainers.test_trainer_mocks import TrainerTrainingLoopMock
 
 
@@ -170,3 +170,26 @@ class TestTrainingLoop(unittest.TestCase):
         self.assertEqual(trainer.current_iteration, current_iteration)
         self.assertEqual(trainer.current_epoch, current_epoch)
         self.assertEqual(trainer.num_updates, num_updates)
+
+    def test_exit_on_nan_losses(self):
+        model = SimpleNaNLossModel({"in_dim": 1})
+        model.build()
+        opt = torch.optim.SGD(model.parameters(), lr=0.01)
+        trainer = TrainerTrainingLoopMock(
+            num_train_data=20,
+            max_updates=4,
+            max_epochs=None,
+            optimizer=opt,
+            update_frequency=1,
+            batch_size=18,
+        )
+        trainer.load_datasets()
+        model.to(trainer.device)
+        trainer.model = model
+
+        exception_raised = False
+        try:
+            trainer.training_loop()
+        except Exception as e:
+            exception_raised = True
+        self.assertTrue(exception_raised)

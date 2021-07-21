@@ -28,6 +28,7 @@ def get_trainer_config():
                 "batch_size": 1,
                 "lr_scheduler": False,
                 "tensorboard": False,
+                "exit_on_nan_losses": True,
             },
             "evaluation": {"use_cpu": False, "metrics": []},
             "optimizer": {"type": "adam_w", "params": {"lr": 5e-5, "eps": 1e-8}},
