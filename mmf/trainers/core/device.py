@@ -129,5 +129,6 @@ def broadcast_xla_master_model_param(model):
         parameters_and_buffers.append(p.data)
     xm.wait_device_ops()
     xm.all_reduce(xm.REDUCE_SUM, parameters_and_buffers)
+    xm.mark_step()
     xm.rendezvous("mmf.trainers.core.device.broadcast_xla_master_model_param")
     logger.info("Done!")
